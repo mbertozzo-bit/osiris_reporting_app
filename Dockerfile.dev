@@ -1,0 +1,33 @@
+# Development Dockerfile for Osiris Reporting App
+
+# Backend development stage
+FROM node:18-alpine AS backend-dev
+WORKDIR /app/backend
+
+# Copy package files
+COPY server/package*.json ./
+
+# Install all dependencies (including dev)
+RUN npm ci
+
+# Copy source code
+COPY server/ ./
+
+# Expose port
+EXPOSE 3001
+
+# Frontend development stage
+FROM node:18-alpine AS frontend-dev
+WORKDIR /app/frontend
+
+# Copy package files
+COPY client/package*.json ./
+
+# Install all dependencies (including dev)
+RUN npm ci
+
+# Copy source code
+COPY client/ ./
+
+# Expose port
+EXPOSE 3000

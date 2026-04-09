@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  osiris-reporting:
+    build: .
+    container_name: osiris-reporting
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATABASE_PATH=/app/data/osiris.db
+      - BACKUP_PATH=/app/backups
+      - UPLOAD_PATH=/app/uploads
+      - LOG_PATH=/app/logs
+      - FRONTEND_URL=http://localhost:3000
+      
+      # Authentication (update these in production)
+      - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
+      - LOGIN_USERNAME=${LOGIN_USERNAME:-Osiris}
+      - LOGIN_PASSWORD=${LOGIN_PASSWORD:-Osiris}
+      
+      # Azure AD Configuration (required for email)
+      - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
+      - AZURE_TENANT_ID=${AZURE_TENANT_ID}
+      - AZURE_CLIENT_SECRET=${AZURE_CLIENT_SECRET}
+      - MAIL_TARGET_ADDRESS=${MAIL_TARGET_ADDRESS:-gemini@tnoutsourcing.com}
+      
+      # File upload limits
+      - MAX_FILE_SIZE=10485760
+      - EMAIL_RATE_LIMIT=20
+    volumes:
+      - ./data:/app/data           # SQLite database
+      - ./backups:/app/backups     # Automated backups
+      - ./uploads:/app/uploads     # Temporary file uploads
+      - ./logs:/app/logs          # Application logs
+      - ./sample-files:/app/sample-files # Sample Excel files
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    
+    # Security
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Named volumes for persistence (optional)
+volumes:
+  osiris-data:
+  osiris-backups:
+  osiris-uploads:
+  osiris-logs:
