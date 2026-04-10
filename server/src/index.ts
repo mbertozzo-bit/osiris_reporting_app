@@ -23,9 +23,13 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Allows loading assets over HTTP
+  crossOriginEmbedderPolicy: false,
+  hsts: false, // Disables Strict-Transport-Security which forces HTTPS
+}));
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || '*', // More permissive for staging
   credentials: true
 }));
 app.use(morgan('combined'));
