@@ -37,7 +37,7 @@ RUN groupadd -g 1001 nodejs && \
     useradd -u 1001 -g nodejs -s /bin/sh -m nodejs && \
     chown -R nodejs:nodejs /app
 
-USER nodejs
+# (Removed USER nodejs to allow entrypoint to run as root and fix permissions)
 
 # Set environment variables
 ENV NODE_ENV=production
