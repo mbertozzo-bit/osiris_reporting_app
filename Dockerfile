@@ -7,8 +7,8 @@ WORKDIR /app/backend
 # Copy backend package files
 COPY server/package*.json ./
 
-# Install all dependencies (required for building)
-RUN npm ci
+# Install all dependencies (allows platform resolution for native bindings)
+RUN npm install
 
 # Copy backend source
 COPY server/ ./
@@ -23,8 +23,8 @@ WORKDIR /app/frontend
 # Copy frontend package files
 COPY client/package*.json ./
 
-# Install frontend dependencies
-RUN npm ci
+# Install frontend dependencies (allows platform resolution for native bindings)
+RUN npm install
 
 # Copy frontend source
 COPY client/ ./
