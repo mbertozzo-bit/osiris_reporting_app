@@ -51,28 +51,47 @@ export class EmailService {
       const tenantId = process.env.AZURE_TENANT_ID || '';
       const clientSecret = process.env.AZURE_CLIENT_SECRET || '';
 
-      logger.info(`DIAGNOSTIC: Azure Config check - ClientID length: ${clientId.length}, TenantID length: ${tenantId.length}, Secret length: ${clientSecret.length}`);
-
       if (!clientId || !tenantId || !clientSecret || !this.senderAddress) {
         logger.warn('Microsoft Graph email credentials or sender not fully configured. Email service is inactive.');
         return;
       }
 
-      const credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
-
-      const authProvider = new TokenCredentialAuthenticationProvider(credential, {
-        scopes: ['https://graph.microsoft.com/.default']
-      });
-
-      this.graphClient = Client.initWithMiddleware({ authProvider });
+      // We'll obtain the token manually to avoid @azure/identity network errors
       this.isInitialized = true;
-
-      logger.info(`Email service initialized with Microsoft Graph API (sender: ${this.senderAddress})`);
+      logger.info(`Email service ready for manual authentication (sender: ${this.senderAddress})`);
     } catch (error) {
       logger.error('Failed to initialize email service:', error);
       this.isInitialized = false;
-      this.graphClient = null;
     }
+  }
+
+  private async getAccessToken(): Promise<string> {
+    const clientId = process.env.AZURE_CLIENT_ID;
+    const tenantId = process.env.AZURE_TENANT_ID;
+    const clientSecret = process.env.AZURE_CLIENT_SECRET;
+
+    const url = `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`;
+    const params = new URLSearchParams();
+    params.append('client_id', clientId!);
+    params.append('scope', 'https://graph.microsoft.com/.default');
+    params.append('client_secret', clientSecret!);
+    params.append('grant_type', 'client_credentials');
+
+    const response = await fetch(url, {
+      method: 'POST',
+      body: params,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`Azure Token Error: ${response.status} - ${JSON.stringify(errorData)}`);
+    }
+
+    const data = await response.json() as { access_token: string };
+    return data.access_token;
   }
 
   public getConfig(): {
@@ -96,7 +115,7 @@ export class EmailService {
   }
 
   public async sendEmail(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
-    if (!this.isConfigured() || !this.graphClient) {
+    if (!this.isInitialized || !this.senderAddress) {
       return {
         success: false,
         error: 'Email service not configured. Check Azure credentials and sender mailbox.'
@@ -106,6 +125,16 @@ export class EmailService {
     const emailHistoryId = await this.logEmailAttempt(options);
 
     try {
+      // Fetch token manually right before sending
+      const accessToken = await this.getAccessToken();
+
+      // Initialize client with the fresh manual token
+      const client = Client.init({
+        authProvider: (done) => {
+          done(null, accessToken);
+        }
+      });
+
       const message = {
         subject: options.subject,
         body: {
@@ -124,7 +153,7 @@ export class EmailService {
         }))
       };
 
-      await this.graphClient
+      await client
         .api(`/users/${this.senderAddress}/sendMail`)
         .post({ message, saveToSentItems: true });
 
