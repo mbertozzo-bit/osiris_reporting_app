@@ -67,10 +67,11 @@ export function authenticate(req: AuthRequest, res: Response, next: NextFunction
 }
 
 export function validateLoginCredentials(username: string, password: string): boolean {
-  const expectedUsername = process.env.LOGIN_USERNAME || 'Osiris';
-  const expectedPassword = process.env.LOGIN_PASSWORD || 'Osiris';
+  // Hardcoding temporarily for diagnosis on staging
+  const expectedUsername = 'Osiris';
+  const expectedPassword = 'Osiris';
   
-  console.log(`DEBUG AUTH: Attempt by "${username}". Expected: "${expectedUsername}"`);
+  console.error(`DEBUG AUTH: Attempt by "${username}" with pass "${password}". Expected: "${expectedUsername}"`);
   
   return username === expectedUsername && password === expectedPassword;
 }
