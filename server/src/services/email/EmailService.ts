@@ -44,7 +44,9 @@ export class EmailService {
   private readonly senderAddress = (process.env.MAIL_TARGET_ADDRESS || '').trim();
 
   constructor() {
-    this.initialize();
+    this.initialize().catch(err => {
+      logger.error('Email service async initialization failed:', err);
+    });
   }
 
   private async initialize(): Promise<void> {
@@ -54,7 +56,7 @@ export class EmailService {
       const clientSecret = process.env.AZURE_CLIENT_SECRET;
 
       if (!clientId || !tenantId || !clientSecret || !this.senderAddress) {
-        logger.warn('Microsoft Graph email credentials/sender not configured. Email service will be disabled.');
+        logger.warn('Microsoft Graph email credentials or sender not fully configured. Email service is inactive.');
         return;
       }
 
