@@ -4,10 +4,10 @@ set -e
 echo "Starting Osiris Reporting Application..."
 
 # Create necessary directories if they don't exist
-mkdir -p /app/data /app/backups /app/uploads /app/logs /app/sample-files
+mkdir -p /app/data /app/backups /app/uploads /app/logs
 
 # Set proper permissions
-chown -R nodejs:nodejs /app/data /app/backups /app/uploads /app/logs /app/sample-files
+chown -R nodejs:nodejs /app/data /app/backups /app/uploads /app/logs
 
 # Check if .env file exists in backend, copy from example if not
 if [ ! -f "/app/backend/.env" ]; then

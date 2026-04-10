@@ -20,8 +20,8 @@ services:
       
       # Development credentials
       - JWT_SECRET=dev-jwt-secret-change-in-production
-      - LOGIN_USERNAME=Osiris
-      - LOGIN_PASSWORD=Osiris
+      - LOGIN_USERNAME=${LOGIN_USERNAME:-}
+      - LOGIN_PASSWORD=${LOGIN_PASSWORD:-}
       
       # Azure AD (optional in dev)
       - AZURE_CLIENT_ID=${AZURE_CLIENT_ID:-}
@@ -34,7 +34,6 @@ services:
       - ./backups-dev:/app/backups
       - ./uploads-dev:/app/uploads
       - ./logs-dev:/app/logs
-      - ./sample-files:/app/sample-files
     command: npm run dev
     stdin_open: true
     tty: true

@@ -17,8 +17,8 @@ services:
       
       # Authentication (update these in production)
       - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
-      - LOGIN_USERNAME=${LOGIN_USERNAME:-Osiris}
-      - LOGIN_PASSWORD=${LOGIN_PASSWORD:-Osiris}
+      - LOGIN_USERNAME=${LOGIN_USERNAME}
+      - LOGIN_PASSWORD=${LOGIN_PASSWORD}
       
       # Azure AD Configuration (required for email)
       - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
@@ -34,7 +34,6 @@ services:
       - ./backups:/app/backups     # Automated backups
       - ./uploads:/app/uploads     # Temporary file uploads
       - ./logs:/app/logs          # Application logs
-      - ./sample-files:/app/sample-files # Sample Excel files
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]

@@ -54,11 +54,6 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 COPY server/.env.example ./backend/.env.example
 COPY docker/entrypoint.sh ./entrypoint.sh
 
-# Copy Excel sample files for reference
-COPY "IC_Reports_AgentSummary (6).xlsx" ./sample-files/
-COPY "IC_Reports_AgentUnavailableTime (25).xlsx" ./sample-files/
-COPY "report details.csv" ./sample-files/
-
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nodejs -u 1001 -G nodejs && \
