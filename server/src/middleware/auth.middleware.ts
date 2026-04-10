@@ -70,6 +70,8 @@ export function validateLoginCredentials(username: string, password: string): bo
   const expectedUsername = process.env.LOGIN_USERNAME || 'Osiris';
   const expectedPassword = process.env.LOGIN_PASSWORD || 'Osiris';
   
+  console.log(`DEBUG AUTH: Attempt by "${username}". Expected: "${expectedUsername}"`);
+  
   return username === expectedUsername && password === expectedPassword;
 }
 
