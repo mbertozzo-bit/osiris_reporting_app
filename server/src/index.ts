@@ -24,9 +24,11 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet({
-  contentSecurityPolicy: false, // Allows loading assets over HTTP
+  contentSecurityPolicy: false, 
   crossOriginEmbedderPolicy: false,
-  hsts: false, // Disables Strict-Transport-Security which forces HTTPS
+  crossOriginOpenerPolicy: false, 
+  crossOriginResourcePolicy: false,
+  hsts: false, 
 }));
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*', // More permissive for staging
