@@ -4,10 +4,10 @@
 FROM node:18-slim AS backend-builder
 WORKDIR /app/backend
 
-# Copy backend package files
-COPY server/package*.json ./
+# Copy ONLY the package.json (ignore the Windows lockfile)
+COPY server/package.json ./
 
-# Install all dependencies (allows platform resolution for native bindings)
+# Install all dependencies from scratch for Linux
 RUN npm install
 
 # Copy backend source
@@ -20,11 +20,14 @@ RUN npm run build
 FROM node:18-slim AS frontend-builder
 WORKDIR /app/frontend
 
-# Copy frontend package files
-COPY client/package*.json ./
+# Copy ONLY the package.json (ignore the Windows lockfile)
+COPY client/package.json ./
 
-# Install frontend dependencies (allows platform resolution for native bindings)
+# Install frontend dependencies from scratch for Linux
 RUN npm install
+
+# Explicitly install the Linux binary for Tailwind 4
+RUN npm install @tailwindcss/oxide-linux-x64-gnu
 
 # Copy frontend source
 COPY client/ ./
