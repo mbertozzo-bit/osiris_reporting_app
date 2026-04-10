@@ -1,58 +1,32 @@
 # Multi-stage Dockerfile for Osiris Reporting App
 
-# Stage 1: Build backend
+# Stage 1: Build backend (compiled on server)
 FROM node:18-slim AS backend-builder
 WORKDIR /app/backend
-
-# Copy ONLY the package.json (ignore the Windows lockfile)
-COPY server/package.json ./
-
-# Install all dependencies from scratch for Linux
-RUN npm install
-
-# Copy backend source
+COPY server/package*.json ./
+RUN npm ci
 COPY server/ ./
-
-# Build backend
 RUN npm run build
 
-# Stage 2: Build frontend
-FROM node:18-slim AS frontend-builder
-WORKDIR /app/frontend
-
-# Copy ONLY the package.json (ignore the Windows lockfile)
-COPY client/package.json ./
-
-# Install frontend dependencies from scratch for Linux
-RUN npm install
-
-# Explicitly install the Linux binary for Tailwind 4
-RUN npm install @tailwindcss/oxide-linux-x64-gnu
-
-# Copy frontend source
-COPY client/ ./
-
-# Build frontend
-RUN npm run build
-
-# Stage 3: Production runtime
+# Stage 2: Production runtime
 FROM node:18-slim
 WORKDIR /app
 
-# Install dependencies for production (and wget for healthcheck)
+# Install dependencies (pm2 for process management and wget for healthcheck)
 RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 RUN npm install -g pm2
 
 # Create app structure
 RUN mkdir -p backend frontend data backups logs uploads
 
-# Copy built backend
+# Copy built backend from Stage 1
 COPY --from=backend-builder /app/backend/dist ./backend/dist
 COPY --from=backend-builder /app/backend/package*.json ./backend/
 COPY --from=backend-builder /app/backend/node_modules ./backend/node_modules
 
-# Copy built frontend
-COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+# Copy PRE-BUILT frontend from local 'client/dist'
+# (Note: You must run 'npm run build' locally before building this image)
+COPY client/dist ./frontend/dist
 
 # Copy configuration files
 COPY server/.env.example ./backend/.env.example
