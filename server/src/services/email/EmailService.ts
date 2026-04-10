@@ -111,7 +111,7 @@ export class EmailService {
   }
 
   public isConfigured(): boolean {
-    return Boolean(this.isInitialized && this.graphClient && this.senderAddress);
+    return Boolean(this.isInitialized && this.senderAddress);
   }
 
   public async sendEmail(options: EmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
