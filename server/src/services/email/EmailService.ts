@@ -1,12 +1,8 @@
 import { Client } from '@microsoft/microsoft-graph-client';
 import { TokenCredentialAuthenticationProvider } from '@microsoft/microsoft-graph-client/authProviders/azureTokenCredentials';
 import { ClientSecretCredential } from '@azure/identity';
-import dotenv from 'dotenv';
-import path from 'path';
 import { db } from '../../database/database';
 import logger, { emailLog } from '../../utils/logger';
-
-dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 
 export interface EmailOptions {
   to: string;
@@ -51,9 +47,11 @@ export class EmailService {
 
   private async initialize(): Promise<void> {
     try {
-      const clientId = process.env.AZURE_CLIENT_ID;
-      const tenantId = process.env.AZURE_TENANT_ID;
-      const clientSecret = process.env.AZURE_CLIENT_SECRET;
+      const clientId = process.env.AZURE_CLIENT_ID || '';
+      const tenantId = process.env.AZURE_TENANT_ID || '';
+      const clientSecret = process.env.AZURE_CLIENT_SECRET || '';
+
+      logger.info(`DIAGNOSTIC: Azure Config check - ClientID length: ${clientId.length}, TenantID length: ${tenantId.length}, Secret length: ${clientSecret.length}`);
 
       if (!clientId || !tenantId || !clientSecret || !this.senderAddress) {
         logger.warn('Microsoft Graph email credentials or sender not fully configured. Email service is inactive.');
