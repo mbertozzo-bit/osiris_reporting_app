@@ -13,12 +13,12 @@ services:
       - BACKUP_PATH=/app/backups
       - UPLOAD_PATH=/app/uploads
       - LOG_PATH=/app/logs
-      - FRONTEND_URL=http://localhost:9000
+      - FRONTEND_URL=http://192.168.80.243:3001
       
       # Authentication (update these in production)
       - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
-      - LOGIN_USERNAME=${LOGIN_USERNAME}
-      - LOGIN_PASSWORD=${LOGIN_PASSWORD}
+      - LOGIN_USERNAME=${LOGIN_USERNAME:-Osiris}
+      - LOGIN_PASSWORD=${LOGIN_PASSWORD:-Osiris}
       
       # Azure AD Configuration (required for email)
       - AZURE_CLIENT_ID=${AZURE_CLIENT_ID}
