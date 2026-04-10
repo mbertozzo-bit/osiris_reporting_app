@@ -36,3 +36,23 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
+
+# Test and Audit reports
+*_audit.json
+*_test.log
+*lint.log
+*typecheck.log
+*typecheck_baseline.log
+build_baseline.log
+qa_test_results_raw.json
+testing_report.md
+
+# Excel and CSV data
+server/*.xlsx
+server/*.csv
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Other temporary files
+Osiris Reporting.html
