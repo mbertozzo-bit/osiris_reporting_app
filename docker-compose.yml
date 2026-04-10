@@ -5,15 +5,15 @@ services:
     build: .
     container_name: osiris-reporting
     ports:
-      - "3001:3001"
+      - "3001:9001"
     environment:
       - NODE_ENV=production
-      - PORT=3001
+      - PORT=9001
       - DATABASE_PATH=/app/data/osiris.db
       - BACKUP_PATH=/app/backups
       - UPLOAD_PATH=/app/uploads
       - LOG_PATH=/app/logs
-      - FRONTEND_URL=http://localhost:3000
+      - FRONTEND_URL=http://localhost:9000
       
       # Authentication (update these in production)
       - JWT_SECRET=${JWT_SECRET:-change-this-in-production}
@@ -36,7 +36,7 @@ services:
       - ./logs:/app/logs          # Application logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/api/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9001/api/health"]
       interval: 30s
       timeout: 3s
       retries: 3

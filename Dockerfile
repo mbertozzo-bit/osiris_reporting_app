@@ -1,14 +1,14 @@
 # Multi-stage Dockerfile for Osiris Reporting App
 
 # Stage 1: Build backend
-FROM node:18-alpine AS backend-builder
+FROM node:18-slim AS backend-builder
 WORKDIR /app/backend
 
 # Copy backend package files
 COPY server/package*.json ./
 
-# Install backend dependencies
-RUN npm ci --only=production
+# Install all dependencies (required for building)
+RUN npm ci
 
 # Copy backend source
 COPY server/ ./
@@ -17,7 +17,7 @@ COPY server/ ./
 RUN npm run build
 
 # Stage 2: Build frontend
-FROM node:18-alpine AS frontend-builder
+FROM node:18-slim AS frontend-builder
 WORKDIR /app/frontend
 
 # Copy frontend package files
@@ -33,10 +33,11 @@ COPY client/ ./
 RUN npm run build
 
 # Stage 3: Production runtime
-FROM node:18-alpine
+FROM node:18-slim
 WORKDIR /app
 
-# Install dependencies for production
+# Install dependencies for production (and wget for healthcheck)
+RUN apt-get update && apt-get install -y wget && rm -rf /var/lib/apt/lists/*
 RUN npm install -g pm2
 
 # Create app structure
@@ -54,30 +55,30 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 COPY server/.env.example ./backend/.env.example
 COPY docker/entrypoint.sh ./entrypoint.sh
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001 -G nodejs && \
+# Create non-root user (Debian syntax)
+RUN groupadd -g 1001 nodejs && \
+    useradd -u 1001 -g nodejs -s /bin/sh -m nodejs && \
     chown -R nodejs:nodejs /app
 
 USER nodejs
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=9001
 ENV DATABASE_PATH=/app/data/osiris.db
 ENV BACKUP_PATH=/app/backups
 ENV UPLOAD_PATH=/app/uploads
 ENV LOG_PATH=/app/logs
 
 # Expose ports
-EXPOSE 3001
+EXPOSE 9001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:9001/api/health || exit 1
 
 # Entrypoint script
-ENTRYPOINT ["sh", "/app/entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "/app/entrypoint.sh"]
 
 # Start application with PM2
 CMD ["pm2-runtime", "start", "/app/backend/dist/index.js", "--name", "osiris-reporting"]
